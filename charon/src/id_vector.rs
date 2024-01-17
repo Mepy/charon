@@ -9,7 +9,8 @@
 //!
 //! TODO: Rustc already provides an `index_vector`. Use it?
 
-use serde::{Serialize, Serializer};
+use serde::{Serialize, Serializer, Deserialize};
+use serde::de::{SeqAccess, Visitor};
 use std::iter::{FromIterator, IntoIterator};
 
 pub use std::collections::hash_map::Iter as IterAll;
@@ -267,5 +268,38 @@ impl<I: ToUsize, T: Clone + Serialize> Serialize for Vector<I, T> {
             seq.serialize_element(e)?;
         }
         seq.end()
+    }
+}
+struct VectorVistor<I, T>{phantom: std::marker::PhantomData<(I, T)>}
+impl<'de, I, T> Visitor<'de> for VectorVistor<I, T>
+where
+    I: ToUsize,
+    T: Clone + Deserialize<'de>,
+{
+    type Value = Vector<I, T>;
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("id_vector.")
+    }
+    fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+    where
+        A: SeqAccess<'de>,
+    {
+        let mut vector = Vector::new();
+        while let Some(value) = seq.next_element()? {
+            vector.vector.push_back(value);
+        }
+        Ok(vector)
+    }
+}
+impl<'de, I, T> Deserialize<'de> for Vector<I, T> 
+where
+    I: ToUsize,
+    T: Clone + Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de> 
+    {
+        deserializer.deserialize_seq(VectorVistor{ phantom:std::marker::PhantomData })
     }
 }

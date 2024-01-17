@@ -1,7 +1,9 @@
 //! Implementations for [crate::values]
+
 use crate::types::*;
 use crate::values::*;
-use serde::{Serialize, Serializer};
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
+use serde::de::{EnumAccess, VariantAccess, Visitor};
 
 impl VarId::Id {
     pub fn to_pretty_string(self) -> String {
@@ -243,28 +245,81 @@ impl std::fmt::Display for Literal {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+enum ScalarValueString {
+    /// Using i64 to be safe
+    Isize(String),
+    I8(String),
+    I16(String),
+    I32(String),
+    I64(String),
+    I128(String),
+    /// Using u64 to be safe
+    Usize(String),
+    U8(String),
+    U16(String),
+    U32(String),
+    U64(String),
+    U128(String),
+}
+impl From<ScalarValue> for ScalarValueString
+{
+    fn from(value: ScalarValue) -> Self {
+        match value
+        {
+        | ScalarValue::Isize(n) => ScalarValueString::Isize(n.to_string()),
+        | ScalarValue::I8(n) => ScalarValueString::I8(n.to_string()),
+        | ScalarValue::I16(n) => ScalarValueString::I16(n.to_string()),
+        | ScalarValue::I32(n) => ScalarValueString::I32(n.to_string()),
+        | ScalarValue::I64(n) => ScalarValueString::I64(n.to_string()),
+        | ScalarValue::I128(n) => ScalarValueString::I128(n.to_string()),
+        | ScalarValue::Usize(n) => ScalarValueString::Usize(n.to_string()),
+        | ScalarValue::U8(n) => ScalarValueString::U8(n.to_string()),
+        | ScalarValue::U16(n) => ScalarValueString::U16(n.to_string()),
+        | ScalarValue::U32(n) => ScalarValueString::U32(n.to_string()),
+        | ScalarValue::U64(n) => ScalarValueString::U64(n.to_string()),
+        | ScalarValue::U128(n) => ScalarValueString::U128(n.to_string()),
+        }
+    }
+}
+impl From<ScalarValueString> for ScalarValue
+{
+    fn from(value: ScalarValueString) -> Self {
+        match value
+        {
+        | ScalarValueString::Isize(n) => ScalarValue::Isize(n.parse::<i64>().unwrap()),
+        | ScalarValueString::I8(n) => ScalarValue::I8(n.parse::<i8>().unwrap()),
+        | ScalarValueString::I16(n) => ScalarValue::I16(n.parse::<i16>().unwrap()),
+        | ScalarValueString::I32(n) => ScalarValue::I32(n.parse::<i32>().unwrap()),
+        | ScalarValueString::I64(n) => ScalarValue::I64(n.parse::<i64>().unwrap()),
+        | ScalarValueString::I128(n) => ScalarValue::I128(n.parse::<i128>().unwrap()),
+        | ScalarValueString::Usize(n) => ScalarValue::Usize(n.parse::<u64>().unwrap()),
+        | ScalarValueString::U8(n) => ScalarValue::U8(n.parse::<u8>().unwrap()),
+        | ScalarValueString::U16(n) => ScalarValue::U16(n.parse::<u16>().unwrap()),
+        | ScalarValueString::U32(n) => ScalarValue::U32(n.parse::<u32>().unwrap()),
+        | ScalarValueString::U64(n) => ScalarValue::U64(n.parse::<u64>().unwrap()),
+        | ScalarValueString::U128(n) => ScalarValue::U128(n.parse::<u128>().unwrap()),
+        }
+    }
+}
+
 impl Serialize for ScalarValue {
     fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
     where
         S: Serializer,
     {
-        let enum_name = "ScalarValue";
-        let variant_name = self.variant_name();
-        let (variant_index, _variant_arity) = self.variant_index_arity();
-        let v = match self {
-            ScalarValue::Isize(i) => i.to_string(),
-            ScalarValue::I8(i) => i.to_string(),
-            ScalarValue::I16(i) => i.to_string(),
-            ScalarValue::I32(i) => i.to_string(),
-            ScalarValue::I64(i) => i.to_string(),
-            ScalarValue::I128(i) => i.to_string(),
-            ScalarValue::Usize(i) => i.to_string(),
-            ScalarValue::U8(i) => i.to_string(),
-            ScalarValue::U16(i) => i.to_string(),
-            ScalarValue::U32(i) => i.to_string(),
-            ScalarValue::U64(i) => i.to_string(),
-            ScalarValue::U128(i) => i.to_string(),
-        };
-        serializer.serialize_newtype_variant(enum_name, variant_index, variant_name, &v)
+        let scalar_string = ScalarValueString::from(*self);
+        scalar_string.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for ScalarValue 
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let scalar_string = ScalarValueString::deserialize(deserializer)?;
+        Ok(ScalarValue::from(scalar_string))
     }
 }

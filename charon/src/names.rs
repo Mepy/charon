@@ -3,18 +3,18 @@ pub use crate::names_utils::*;
 use crate::types::*;
 use macros::generate_index_type;
 use macros::{EnumAsGetters, EnumIsA};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 
 generate_index_type!(Disambiguator);
 
 /// See the comments for [Name]
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, EnumIsA, EnumAsGetters)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, EnumIsA, EnumAsGetters)]
 pub enum PathElem {
     Ident(String, Disambiguator::Id),
     Impl(ImplElem),
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ImplElem {
     pub generics: GenericParams,
     pub preds: Predicates,
@@ -57,7 +57,7 @@ pub struct ImplElem {
 /// name clashes anyway. Still, we might want to be more precise in the future.
 ///
 /// Also note that the first path element in the name is always the crate name.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct Name {
     pub name: Vec<PathElem>,

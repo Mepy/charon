@@ -2,7 +2,8 @@
 
 pub use crate::meta_utils::*;
 use macros::{generate_index_type, EnumAsGetters, EnumIsA};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
+
 
 generate_index_type!(LocalFileId);
 generate_index_type!(VirtualFileId);
@@ -12,7 +13,7 @@ pub mod FileId {
     use crate::meta::*;
 
     #[derive(
-        Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, EnumIsA, EnumAsGetters, Serialize,
+        Debug, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, EnumIsA, EnumAsGetters, Serialize, Deserialize
     )]
     pub enum Id {
         LocalId(LocalFileId::Id),
@@ -20,7 +21,7 @@ pub mod FileId {
     }
 }
 
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Loc {
     /// The (1-based) line number.
     pub line: usize,
@@ -29,7 +30,7 @@ pub struct Loc {
 }
 
 /// Span information
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Span {
     pub file_id: FileId::Id,
     pub beg: Loc,
@@ -41,7 +42,7 @@ pub struct Span {
 }
 
 /// Meta information about a piece of code (block, statement, etc.)
-#[derive(Debug, Copy, Clone, Serialize)]
+#[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct Meta {
     /// The source code span.
     ///
@@ -67,11 +68,11 @@ pub struct Meta {
     pub generated_from_span: Option<Span>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub struct FileInfo {}
 
 /// A filename.
-#[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum FileName {
     /// A remapped path (namely paths into stdlib)
     Virtual(String),

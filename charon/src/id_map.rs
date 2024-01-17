@@ -3,7 +3,9 @@
 //! This data-structure is mostly meant to be used with the index types defined
 //! with [macros::generate_index_type]: by using custom index types, we
 //! leverage the type checker to prevent us from mixing them.
+use serde::Deserialize;
 use serde::{Serialize, Serializer};
+use serde::de::{MapAccess, Visitor};
 pub use std::collections::btree_map::Iter as IterAll;
 pub use std::collections::btree_map::IterMut as IterAllMut;
 pub use std::collections::BTreeMap;
@@ -83,6 +85,47 @@ impl<Id: Serialize, T: Clone + Serialize> Serialize for Map<Id, T> {
         seq.end()
     }
 }
+struct MapVisitor<Id, T> { phantom: std::marker::PhantomData<(Id, T)> }
+
+
+impl<'de, Id, T> Visitor<'de> for MapVisitor<Id, T>
+where
+    Id: std::cmp::Ord+Deserialize<'de>,
+    T: Deserialize<'de>,
+{
+    type Value = Map<Id, T>;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("id map")
+    }
+
+    fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        let mut map = Map::new();
+
+        while let Some((key, value)) = access.next_entry()? {
+            map.insert(key, value);
+        }
+
+        Ok(map)
+    }
+}
+
+impl<'de, Id, T> Deserialize<'de> for Map<Id, T>
+where
+    Id: std::cmp::Ord+Deserialize<'de>,
+    T: Deserialize<'de>,
+{
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de> 
+    {
+        deserializer.deserialize_map(MapVisitor{phantom:std::marker::PhantomData})
+    }
+}
+
 
 impl<Id, T> FromIterator<(Id, T)> for Map<Id, T>
 where

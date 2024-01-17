@@ -45,14 +45,16 @@ fn transform_body(ctx: &TransCtx, name: &Name, body: &mut Option<ExprBody>) {
 
 fn transform_function(ctx: &mut TransCtx, def: &mut FunDecl) {
     if def.signature.output.is_unit() {
-        ctx.with_def_id(def.rust_id, |ctx| {
+        let Some(rust_id) = def.rust_id else { unreachable!() };
+        ctx.with_def_id(rust_id, |ctx| {
             transform_body(ctx, &def.name, &mut def.body)
         });
     }
 }
 fn transform_global(ctx: &mut TransCtx, def: &mut GlobalDecl) {
     if def.ty.is_unit() {
-        ctx.with_def_id(def.rust_id, |ctx| {
+        let Some(rust_id) = def.rust_id else { unreachable!() };
+        ctx.with_def_id(rust_id, |ctx| {
             transform_body(ctx, &def.name, &mut def.body)
         });
     }

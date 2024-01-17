@@ -1863,7 +1863,7 @@ impl<'tcx, 'ctx> TransCtx<'tcx, 'ctx> {
             FunDecl {
                 meta,
                 def_id,
-                rust_id,
+                rust_id:Some(rust_id),
                 is_local,
                 name,
                 signature,
@@ -1937,7 +1937,7 @@ impl<'tcx, 'ctx> TransCtx<'tcx, 'ctx> {
             def_id,
             GlobalDecl {
                 def_id,
-                rust_id,
+                rust_id:Some(rust_id),
                 meta,
                 is_local: rust_id.is_local(),
                 name,

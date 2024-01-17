@@ -23,6 +23,8 @@ const _TAB: &'static str = "    ";
 const _TWO_TABS: &'static str = "        ";
 const THREE_TABS: &'static str = "            ";
 
+
+
 /// This is very annoying, but we can't use a global constant string in `format`:
 /// we need to define a macro to return a string literal.
 /// TODO: turn [generic_index_type] into a simpl macro rule.
@@ -99,6 +101,38 @@ pub mod {} {{
             serializer.serialize_u32(self.index as u32)
         }}
     }}
+
+    struct U32Visitor;
+    impl<'de> serde::de::Visitor<'de> for U32Visitor {{
+        type Value = usize;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {{
+            formatter.write_str(\"a usize integer\")
+        }}
+
+        fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {{
+            if value <= (usize::MAX as u64) {{
+                Ok(value as usize)
+            }} else {{
+                Err(E::custom(format!(\"usize out of range: {{}}\", value)))
+            }}
+        }}
+    }}
+    impl<'de> serde::Deserialize<'de> for Id {{
+        fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+        where
+            D: serde::Deserializer<'de> 
+        {{
+            // usize is not necessarily contained in u32
+            let index = deserializer.deserialize_u32(U32Visitor)?;
+            Ok(Id{{index}})
+            
+        }} 
+    }}
+    
  
     impl Generator {{
         pub fn new() -> Generator {{

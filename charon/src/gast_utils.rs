@@ -13,7 +13,7 @@ use std::cmp::max;
 /// TODO: generalize this with visitors
 pub fn iter_function_bodies<T>(
     funs: &mut FunDeclId::Map<GFunDecl<T>>,
-) -> impl Iterator<Item = (DefId, &Name, &mut GExprBody<T>)> {
+) -> impl Iterator<Item = (Option<DefId>, &Name, &mut GExprBody<T>)> {
     funs.iter_mut().flat_map(|f| match f.body.as_mut() {
         None => None, // Option::map was complaining about borrowing f
         Some(b) => Some((f.rust_id, &f.name, b)),
@@ -25,7 +25,7 @@ pub fn iter_function_bodies<T>(
 /// TODO: generalize this with visitors
 pub fn iter_global_bodies<T>(
     globals: &mut GlobalDeclId::Map<GGlobalDecl<T>>,
-) -> impl Iterator<Item = (DefId, &Name, &mut GExprBody<T>)> {
+) -> impl Iterator<Item = (Option<DefId>, &Name, &mut GExprBody<T>)> {
     globals.iter_mut().flat_map(|g| match g.body.as_mut() {
         None => None, // Option::map was complaining about borrowing g
         Some(b) => Some((g.rust_id, &g.name, b)),

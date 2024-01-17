@@ -6,10 +6,10 @@ use crate::types::*;
 pub use crate::values::VarId;
 use crate::values::*;
 use macros::{EnumAsGetters, EnumIsA, EnumToGetters, VariantIndexArity, VariantName};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use std::vec::Vec;
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Place {
     // TODO: update to transform to a recursive type
     pub var_id: VarId::Id,
@@ -27,7 +27,7 @@ pub type Projection = Vec<ProjectionElem>;
 /// In MIR, downcasts always happen before field projections: in our internal
 /// language, we thus merge downcasts and field projections.
 #[derive(
-    Debug, PartialEq, Eq, Clone, EnumIsA, EnumAsGetters, EnumToGetters, VariantName, Serialize,
+    Debug, PartialEq, Eq, Clone, EnumIsA, EnumAsGetters, EnumToGetters, VariantName, Serialize, Deserialize,
 )]
 pub enum ProjectionElem {
     /// Dereference a shared/mutable reference.
@@ -61,7 +61,7 @@ pub enum ProjectionElem {
     Index(VarId::Id, Ty),
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone, EnumIsA, EnumAsGetters, Serialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, EnumIsA, EnumAsGetters, Serialize, Deserialize)]
 pub enum FieldProjKind {
     #[serde(rename = "ProjAdt")]
     Adt(TypeDeclId::Id, Option<VariantId::Id>),
@@ -74,7 +74,7 @@ pub enum FieldProjKind {
     ClosureState,
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone, EnumIsA, EnumAsGetters, Serialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, EnumIsA, EnumAsGetters, Serialize, Deserialize)]
 pub enum BorrowKind {
     Shared,
     Mut,
@@ -90,7 +90,7 @@ pub enum BorrowKind {
 }
 
 /// Unary operation
-#[derive(Debug, PartialEq, Eq, Clone, EnumIsA, VariantName, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, EnumIsA, VariantName, Serialize, Deserialize)]
 pub enum UnOp {
     Not,
     /// This can overflow. In practice, rust introduces an assert before
@@ -111,7 +111,7 @@ pub enum UnOp {
 
 /// For all the variants: the first type gives the source type, the second one gives
 /// the destination type.
-#[derive(Debug, PartialEq, Eq, Clone, EnumIsA, VariantName, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, EnumIsA, VariantName, Serialize, Deserialize)]
 pub enum CastKind {
     /// Conversion between types in {Integer, Bool}
     /// Remark: for now we don't support conversions with Char.
@@ -120,7 +120,7 @@ pub enum CastKind {
 }
 
 /// Binary operations.
-#[derive(Debug, PartialEq, Eq, Copy, Clone, EnumIsA, VariantName, Serialize)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, EnumIsA, VariantName, Serialize, Deserialize)]
 pub enum BinOp {
     BitXor,
     BitAnd,
@@ -149,7 +149,7 @@ pub enum BinOp {
 }
 
 #[derive(
-    Debug, PartialEq, Eq, Clone, EnumIsA, EnumToGetters, EnumAsGetters, VariantName, Serialize,
+    Debug, PartialEq, Eq, Clone, EnumIsA, EnumToGetters, EnumAsGetters, VariantName, Serialize, Deserialize
 )]
 pub enum Operand {
     Copy(Place),
@@ -159,7 +159,7 @@ pub enum Operand {
 }
 
 /// A function identifier. See [crate::ullbc_ast::Terminator]
-#[derive(Debug, Clone, PartialEq, Eq, EnumIsA, EnumAsGetters, VariantName, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, EnumIsA, EnumAsGetters, VariantName, Serialize, Deserialize)]
 pub enum FunId {
     /// A "regular" function (function local to the crate, external function
     /// not treated as a primitive one).
@@ -172,7 +172,7 @@ pub enum FunId {
 
 /// An assumed function identifier, identifying a function coming from a
 /// standard library.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIsA, EnumAsGetters, VariantName, Serialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIsA, EnumAsGetters, VariantName, Serialize, Deserialize)]
 pub enum AssumedFunId {
     /// `alloc::boxed::Box::new`
     BoxNew,
@@ -224,7 +224,7 @@ pub enum AssumedFunId {
     SliceIndexMut,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, EnumAsGetters)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, EnumAsGetters)]
 pub enum FunIdOrTraitMethodRef {
     Fun(FunId),
     /// If a trait: the reference to the trait and the id of the trait method.
@@ -233,7 +233,7 @@ pub enum FunIdOrTraitMethodRef {
     Trait(TraitRef, TraitItemName, FunDeclId::Id),
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct FnPtr {
     pub func: FunIdOrTraitMethodRef,
     pub generics: GenericArgs,
@@ -270,7 +270,7 @@ pub struct FnPtr {
 /// Remark:
 /// MIR seems to forbid more complex expressions like paths. For instance,
 /// reading the constant `a.b` is translated to `{ _1 = const a; _2 = (_1.0) }`.
-#[derive(Debug, PartialEq, Eq, Clone, Serialize, VariantName, EnumIsA, EnumAsGetters)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize, VariantName, EnumIsA, EnumAsGetters)]
 pub enum RawConstantExpr {
     Literal(Literal),
     ///
@@ -313,7 +313,7 @@ pub enum RawConstantExpr {
     FnPtr(FnPtr),
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Serialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct ConstantExpr {
     pub value: RawConstantExpr,
     pub ty: Ty,
@@ -321,7 +321,7 @@ pub struct ConstantExpr {
 
 /// TODO: we could factor out [Rvalue] and function calls (for LLBC, not ULLBC).
 /// We can also factor out the unops, binops with the function calls.
-#[derive(Debug, Clone, Serialize, EnumToGetters, EnumAsGetters, EnumIsA)]
+#[derive(Debug, Clone, Serialize, Deserialize, EnumToGetters, EnumAsGetters, EnumIsA)]
 pub enum Rvalue {
     Use(Operand),
     Ref(Place, BorrowKind),
@@ -376,7 +376,7 @@ pub enum Rvalue {
     Repeat(Operand, Ty, ConstGeneric),
 }
 
-#[derive(Debug, Clone, VariantIndexArity, Serialize)]
+#[derive(Debug, Clone, VariantIndexArity, Serialize, Deserialize)]
 pub enum AggregateKind {
     Adt(TypeId, Option<VariantId::Id>, GenericArgs),
     /// We don't put this with the ADT cas because this is the only assumed type

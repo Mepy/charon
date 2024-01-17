@@ -683,6 +683,7 @@ impl<'tcx, 'ctx> TransCtx<'tcx, 'ctx> {
         F: Fn(&mut Self, &Name, &mut GExprBody<B>),
     {
         for (id, name, b) in iter_function_bodies(funs).chain(iter_global_bodies(globals)) {
+            let Some(id) = id else { unreachable!() };
             self.with_def_id(id, |ctx| f(ctx, name, b))
         }
     }

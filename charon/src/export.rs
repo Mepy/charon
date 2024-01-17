@@ -5,14 +5,14 @@ use crate::translate_ctx::*;
 use crate::types::*;
 use crate::ullbc_ast;
 use crate::ullbc_ast::{FunDeclId, GlobalDeclId, TraitDecl, TraitImpl};
-use serde::Serialize;
+use serde::{Serialize};
 use std::fs::File;
 use std::path::PathBuf;
 
 /// A generic crate, which implements the [Serialize] trait
 #[derive(Serialize)]
 #[serde(rename = "Crate")]
-struct GCrateSerializer<'a, FD, GD> {
+pub struct GCrateSerializer<'a, FD, GD> {
     name: String,
     /// The `id_to_file` map is serialized as a vector.
     /// We use this map for the spans: the spans only store the file ids, not
