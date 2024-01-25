@@ -3,7 +3,6 @@
 use crate::types::*;
 use crate::values::*;
 use serde::{Serialize, Deserialize, Serializer, Deserializer};
-use serde::de::{EnumAccess, VariantAccess, Visitor};
 
 impl VarId::Id {
     pub fn to_pretty_string(self) -> String {

@@ -36,7 +36,7 @@ pub mod {} {{
              std::hash::Hash, std::cmp::PartialEq, std::cmp::Eq,
              std::cmp::PartialOrd, std::cmp::Ord)]
     pub struct Id {{
-        index: usize,
+        pub index: usize,
     }}
 
     #[derive(std::fmt::Debug, std::clone::Clone, std::marker::Copy)]
